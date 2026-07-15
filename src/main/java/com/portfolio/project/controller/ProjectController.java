@@ -19,9 +19,7 @@ import com.portfolio.project.dto.CreateProjectRequest;
 import com.portfolio.project.dto.PaginationResponse;
 import com.portfolio.project.dto.ProjectResponse;
 import com.portfolio.project.dto.UpdateProjectRequest;
-import com.portfolio.project.entity.Analytics;
-import com.portfolio.project.security.UserPrincipal;
-import com.portfolio.project.service.AnalyticsService;
+import com.portfolio.project.security.GatewayPrincipal;
 import com.portfolio.project.service.ProjectService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ProjectController {
 
     private final ProjectService projectService;
-    private final AnalyticsService analyticsService;
 
     @GetMapping
     public ResponseEntity<PaginationResponse<ProjectResponse>> getAllProjects(
@@ -45,11 +42,6 @@ public class ProjectController {
             HttpServletRequest request, Authentication authentication) {
 
         log.info("Fetching all projects - page: {}, size: {}", page, size);
-        Long userId = extractUserId(authentication);
-        String username = extractUsername(authentication);
-        analyticsService.recordEvent(Analytics.EventType.PAGE_VIEW, "projects.list", userId, username, null, null, null,
-                request);
-
         PaginationResponse<ProjectResponse> response = projectService.getAllProjects(page, size);
         return ResponseEntity.ok(response);
     }
@@ -60,10 +52,6 @@ public class ProjectController {
             HttpServletRequest request, Authentication authentication) {
 
         log.info("Searching projects - query: {}, page: {}, size: {}", q, page, size);
-        Long userId = extractUserId(authentication);
-        String username = extractUsername(authentication);
-        analyticsService.recordEvent(Analytics.EventType.SEARCH, "projects.search", userId, username, null, null, q,
-                request);
 
         PaginationResponse<ProjectResponse> response = projectService.searchByTitle(q, page, size);
         return ResponseEntity.ok(response);
@@ -75,10 +63,6 @@ public class ProjectController {
             HttpServletRequest request, Authentication authentication) {
 
         log.info("Fetching most viewed projects - page: {}, size: {}", page, size);
-        Long userId = extractUserId(authentication);
-        String username = extractUsername(authentication);
-        analyticsService.recordEvent(Analytics.EventType.PAGE_VIEW, "projects.trending.views", userId, username, null,
-                null, null, request);
 
         PaginationResponse<ProjectResponse> response = projectService.getMostViewedProjects(page, size);
         return ResponseEntity.ok(response);
@@ -90,11 +74,7 @@ public class ProjectController {
             HttpServletRequest request, Authentication authentication) {
 
         log.info("Fetching most liked projects - page: {}, size: {}", page, size);
-        Long userId = extractUserId(authentication);
-        String username = extractUsername(authentication);
-        analyticsService.recordEvent(Analytics.EventType.PAGE_VIEW, "projects.trending.likes", userId, username, null,
-                null, null, request);
-
+ 
         PaginationResponse<ProjectResponse> response = projectService.getMostLikedProjects(page, size);
         return ResponseEntity.ok(response);
     }
@@ -105,9 +85,9 @@ public class ProjectController {
         log.info("Fetching project with ID: {}", id);
 
         Long userId = null;
-        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-            userId = userPrincipal.getId();
+        if (authentication != null && authentication.getPrincipal() instanceof GatewayPrincipal) {
+            GatewayPrincipal gatewayPrincipal = (GatewayPrincipal) authentication.getPrincipal();
+            userId = gatewayPrincipal.getId();
         }
 
         ProjectResponse response = projectService.getProjectById(id, userId);
@@ -145,12 +125,7 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> recordView(@PathVariable Long id, HttpServletRequest request,
             Authentication authentication) {
         log.debug("Recording view for project ID: {}", id);
-
-        Long userId = extractUserId(authentication);
-        String username = extractUsername(authentication);
         ProjectResponse response = projectService.incrementViewCounter(id);
-        analyticsService.recordEvent(Analytics.EventType.PROJECT_VIEW, "project.view", userId, username,
-                response.getId(), response.getTitle(), "view", request);
 
         return ResponseEntity.ok(response);
     }
@@ -162,10 +137,8 @@ public class ProjectController {
 
         log.info("User liking project with ID: {}", id);
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        ProjectResponse response = projectService.likeProject(id, userPrincipal.getId());
-        analyticsService.recordEvent(Analytics.EventType.PROJECT_LIKE, "project.like", userPrincipal.getId(),
-                userPrincipal.getUsername(), response.getId(), response.getTitle(), "like", request);
+        GatewayPrincipal gatewayPrincipal = (GatewayPrincipal) authentication.getPrincipal();
+        ProjectResponse response = projectService.likeProject(id, gatewayPrincipal.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -176,24 +149,8 @@ public class ProjectController {
 
         log.info("User unliking project with ID: {}", id);
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        ProjectResponse response = projectService.unlikeProject(id, userPrincipal.getId());
-        analyticsService.recordEvent(Analytics.EventType.PROJECT_UNLIKE, "project.unlike", userPrincipal.getId(),
-                userPrincipal.getUsername(), response.getId(), response.getTitle(), "unlike", request);
+        GatewayPrincipal gatewayPrincipal = (GatewayPrincipal) authentication.getPrincipal();
+        ProjectResponse response = projectService.unlikeProject(id, gatewayPrincipal.getId());
         return ResponseEntity.ok(response);
-    }
-
-    private Long extractUserId(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal)) {
-            return null;
-        }
-        return ((UserPrincipal) authentication.getPrincipal()).getId();
-    }
-
-    private String extractUsername(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal)) {
-            return null;
-        }
-        return ((UserPrincipal) authentication.getPrincipal()).getUsername();
     }
 }
