@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.portfolio.project.dto.CreateProjectRequest;
+import com.portfolio.project.dto.DashboardResponse;
 import com.portfolio.project.dto.PaginationResponse;
 import com.portfolio.project.dto.ProjectResponse;
 import com.portfolio.project.dto.UpdateProjectRequest;
@@ -43,6 +44,16 @@ public class ProjectController {
 
         log.info("Fetching all projects - page: {}, size: {}", page, size);
         PaginationResponse<ProjectResponse> response = projectService.getAllProjects(page, size);
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardResponse> getDashboardResponse(
+            @RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "20") Integer size,
+            HttpServletRequest request, Authentication authentication) {
+
+        log.info("Fetching all projects - page: {}, size: {}", page, size);
+        DashboardResponse response = projectService.getDashboardResponse(page, size);
         return ResponseEntity.ok(response);
     }
 

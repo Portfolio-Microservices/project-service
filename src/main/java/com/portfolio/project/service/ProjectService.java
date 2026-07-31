@@ -8,7 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.portfolio.project.client.ContentClient;
 import com.portfolio.project.dto.CreateProjectRequest;
+import com.portfolio.project.dto.DashboardResponse;
 import com.portfolio.project.dto.PaginationResponse;
 import com.portfolio.project.dto.ProjectResponse;
 import com.portfolio.project.dto.UpdateProjectRequest;
@@ -33,6 +35,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectLikeRepository projectLikeRepository;
     private final UserRepository userRepository;
+    private final ContentClient contentClient;
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
@@ -48,8 +51,17 @@ public class ProjectService {
 
         return buildPaginationResponse(projects);
     }
-
+    
     @Transactional(readOnly = true)
+    @Cacheable(value = "dashboard", key = "#pageNumber + '_' + #pageSize")
+	public DashboardResponse getDashboardResponse(Integer page, Integer size) {
+    	DashboardResponse response = new DashboardResponse();
+    	response.setProjects(getAllProjects(page, size));
+    	response.setBlogs(contentClient.getBlogs(page, size));
+		return response;
+	}
+
+	@Transactional(readOnly = true)
     public PaginationResponse<ProjectResponse> searchByTitle(String title, Integer pageNumber, Integer pageSize) {
         if (title == null || title.trim().isEmpty()) {
             throw new InvalidInputException("Search title cannot be empty");
