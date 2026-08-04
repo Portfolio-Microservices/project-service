@@ -106,7 +106,7 @@ public class ProjectController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody CreateProjectRequest request) {
 
         log.info("Creating new project - title: {}", request.getTitle());
@@ -115,7 +115,7 @@ public class ProjectController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id,
             @Valid @RequestBody UpdateProjectRequest request) {
 
