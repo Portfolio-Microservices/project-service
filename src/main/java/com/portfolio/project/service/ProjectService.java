@@ -53,7 +53,7 @@ public class ProjectService {
     }
     
     @Transactional(readOnly = true)
-    @Cacheable(value = "dashboard", key = "#pageNumber + '_' + #pageSize")
+//    @Cacheable(value = "dashboard", key = "#pageNumber + '_' + #pageSize")
 	public DashboardResponse getDashboardResponse(Integer page, Integer size) {
     	DashboardResponse response = new DashboardResponse();
     	response.setProjects(getAllProjects(page, size));
