@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          content-service:
+            connectTimeout: 2000
+            readTimeout: 2000

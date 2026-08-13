@@ -24,6 +24,7 @@ import com.portfolio.project.repository.ProjectLikeRepository;
 import com.portfolio.project.repository.ProjectRepository;
 import com.portfolio.project.repository.UserRepository;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,6 +54,7 @@ public class ProjectService {
     }
     
     @Transactional(readOnly = true)
+    @Retry(name = "contentService")
 //    @Cacheable(value = "dashboard", key = "#pageNumber + '_' + #pageSize")
 	public DashboardResponse getDashboardResponse(Integer page, Integer size) {
     	DashboardResponse response = new DashboardResponse();
