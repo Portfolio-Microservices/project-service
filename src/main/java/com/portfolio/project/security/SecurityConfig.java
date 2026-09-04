@@ -31,6 +31,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/v1/projects/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/v1/contact/**").permitAll()
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers("/trace-test").permitAll()
 						
 						.anyRequest().authenticated())
 				.addFilterBefore(gatewayAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
